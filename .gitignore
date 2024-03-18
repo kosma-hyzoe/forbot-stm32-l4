@@ -7,8 +7,8 @@
 .cache
 .mxproject
 
-main.c
-helpers.c
+m.c
+h.c
 
 ref
 course.pdf
