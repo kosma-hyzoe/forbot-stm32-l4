@@ -20,6 +20,8 @@
 #include "main.h"
 #include "iwdg.h"
 #include "rtc.h"
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_gpio.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -42,6 +44,9 @@
 #ifndef DEBUG
 #define DEBUG 0
 #endif
+
+#define ON 1
+#define OFF 2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,12 +75,28 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {}
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == B1_Pin)
+    printf("kocham mamę\n");
+}
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   if (htim == &htim6)
     ;
   if (htim == &htim3)
-    switch (HAL_TIM_GetActiveChannel(&htim3)
+    switch (HAL_TIM_GetActiveChannel(&htim3)) {
+      case HAL_TIM_ACTIVE_CHANNEL_1:
+        ;
+        break;
+      case HAL_TIM_ACTIVE_CHANNEL_2:
+        ;
+        break;
+      case HAL_TIM_ACTIVE_CHANNEL_3:
+        ;
+        break;
+      default:
+        break;
+    }
 }
 
 /* USER CODE END 0 */
@@ -121,12 +142,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1) {
+  while (ON) {
     /* USER CODE END WHILE */
-
+    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    HAL_Delay(400);
+    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     /* USER CODE BEGIN 3 */
-    if (is_pressed(B1_GPIO_Port, B1_Pin))
-      HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 
     HAL_IWDG_Refresh(&hiwdg);
   }
