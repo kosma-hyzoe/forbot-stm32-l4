@@ -18,10 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "iwdg.h"
-#include "rtc.h"
-#include "stm32l4xx_hal.h"
-#include "stm32l4xx_hal_gpio.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -77,26 +73,12 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if (GPIO_Pin == B1_Pin)
-    printf("kocham mamę\n");
 }
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-  if (htim == &htim6)
-    ;
-  if (htim == &htim3)
-    switch (HAL_TIM_GetActiveChannel(&htim3)) {
-      case HAL_TIM_ACTIVE_CHANNEL_1:
-        ;
-        break;
-      case HAL_TIM_ACTIVE_CHANNEL_2:
-        ;
-        break;
-      case HAL_TIM_ACTIVE_CHANNEL_3:
-        ;
-        break;
-      default:
-        break;
-    }
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim3) {
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+  }
 }
 
 /* USER CODE END 0 */
@@ -129,14 +111,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
-  MX_RTC_Init();
-  MX_IWDG_Init();
-  MX_TIM6_Init();
   MX_TIM3_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim6);
   HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
   /* USER CODE END 2 */
 
@@ -144,12 +125,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (ON) {
     /* USER CODE END WHILE */
-    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-    HAL_Delay(400);
-    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+
     /* USER CODE BEGIN 3 */
 
-    HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */
 }
@@ -170,25 +148,16 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE
-                              |RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSICalibrationValue = 0;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
-  RCC_OscInitStruct.PLL.PLLN = 40;
+  RCC_OscInitStruct.PLL.PLLN = 10;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -210,10 +179,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-
-  /** Enable MSI Auto calibration
-  */
-  HAL_RCCEx_EnableMSIPLLMode();
 }
 
 /* USER CODE BEGIN 4 */

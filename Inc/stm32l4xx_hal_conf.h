@@ -54,7 +54,7 @@
 /*#define HAL_HASH_MODULE_ENABLED   */
 /*#define HAL_I2S_MODULE_ENABLED   */
 /*#define HAL_IRDA_MODULE_ENABLED   */
-#define HAL_IWDG_MODULE_ENABLED
+/*#define HAL_IWDG_MODULE_ENABLED   */
 /*#define HAL_LTDC_MODULE_ENABLED   */
 /*#define HAL_LCD_MODULE_ENABLED   */
 /*#define HAL_LPTIM_MODULE_ENABLED   */
@@ -69,7 +69,7 @@
 /*#define HAL_QSPI_MODULE_ENABLED   */
 /*#define HAL_QSPI_MODULE_ENABLED   */
 /*#define HAL_RNG_MODULE_ENABLED   */
-#define HAL_RTC_MODULE_ENABLED
+/*#define HAL_RTC_MODULE_ENABLED   */
 /*#define HAL_SAI_MODULE_ENABLED   */
 /*#define HAL_SD_MODULE_ENABLED   */
 /*#define HAL_SMBUS_MODULE_ENABLED   */
