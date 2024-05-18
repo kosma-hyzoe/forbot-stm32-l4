@@ -80,7 +80,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
   }
 }
+volatile uint32_t captured_value;
 
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim3) {
+    switch (HAL_TIM_GetActiveChannel(&htim3)) {
+      case HAL_TIM_ACTIVE_CHANNEL_1:
+        captured_value = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+        break;
+      default:
+        break;
+    }
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -114,16 +127,18 @@ int main(void)
   MX_TIM3_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_Base_Start(&htim3);
+  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (ON) {
+    if (captured_value != 0) {
+      printf("val: %lu\n", captured_value);
+      captured_value = 0;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
