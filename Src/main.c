@@ -18,9 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_tim.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -43,6 +46,8 @@
 
 #define ON 1
 #define OFF 2
+#define K 0.13f
+#define X0 70.0f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -79,6 +84,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim == &htim3) {
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
   }
+}
+
+float calc_pwm(float val)
+{
+  return 10000.0f / (1.0f + exp(-K * (val - X0)));
 }
 
 /* USER CODE END 0 */
@@ -123,9 +133,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int counter = 0;
   while (ON) {
     /* USER CODE END WHILE */
-
+  float r = 50 * (1.0f + sin(counter / 100.0f));
+  float g = 50 * (1.0f + sin(1.5f * counter / 100.0f));
+  float b = 50 * (1.0f + sin(2.0f * counter / 100.0f));
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, calc_pwm(b));
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, calc_pwm(g));
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, calc_pwm(r));
+  HAL_Delay(3);
+  counter++;
     /* USER CODE BEGIN 3 */
 
   }

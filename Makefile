@@ -5,7 +5,7 @@
 all:
 	pio -f -c vim run -e release && pio -f -c vim run -e release --target upload
 debug:
-	pio -f -c vim run -e debug && pio -f -c vim run -e debug --target upload
+	stm32pio generate pio -f -c vim run -e debug && pio -f -c vim run -e debug --target upload
 build:
 	pio -f -c vim run -e release
 build-debug:
