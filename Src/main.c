@@ -18,12 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stm32l4xx_hal.h"
-#include "stm32l4xx_hal_tim.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -64,6 +61,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+int cnt = 0;
 RTC_TimeTypeDef time;
 RTC_DateTypeDef date;
 /* USER CODE END PV */
@@ -81,8 +79,28 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+}
+
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
+{
   if (htim == &htim3) {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    switch (HAL_TIM_GetActiveChannel(&htim3)) {
+      case HAL_TIM_ACTIVE_CHANNEL_1:
+        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+        if (cnt == 40) {
+          HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+          cnt = 0;
+        }
+        break;
+      case HAL_TIM_ACTIVE_CHANNEL_2:
+        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+        if (++cnt == 40) {
+          HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
+        }
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -123,27 +141,21 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_4);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int counter = 0;
   while (ON) {
     /* USER CODE END WHILE */
-  float r = 50 * (1.0f + sin(counter / 100.0f));
-  float g = 50 * (1.0f + sin(1.5f * counter / 100.0f));
-  float b = 50 * (1.0f + sin(2.0f * counter / 100.0f));
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, calc_pwm(b));
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, calc_pwm(g));
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, calc_pwm(r));
-  HAL_Delay(3);
-  counter++;
+      printf("date\n");
     /* USER CODE BEGIN 3 */
 
   }
