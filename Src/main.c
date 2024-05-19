@@ -86,17 +86,12 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim == &htim3) {
     switch (HAL_TIM_GetActiveChannel(&htim3)) {
       case HAL_TIM_ACTIVE_CHANNEL_1:
-        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
-        if (cnt == 40) {
+          HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
           HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
-          cnt = 0;
-        }
         break;
       case HAL_TIM_ACTIVE_CHANNEL_2:
-        HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-        if (++cnt == 40) {
+          HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
           HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
-        }
         break;
       default:
         break;
@@ -155,7 +150,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (ON) {
     /* USER CODE END WHILE */
-      printf("date\n");
+
     /* USER CODE BEGIN 3 */
 
   }
