@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32l4xx_hal_tim.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -61,6 +62,7 @@
 /* USER CODE BEGIN PV */
 RTC_TimeTypeDef time;
 RTC_DateTypeDef date;
+volatile uint32_t captured_value;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,23 +73,22 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-}
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim == &htim3) {
+  if (htim == &htim4)
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-  }
 }
-volatile uint32_t captured_value;
-
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim == &htim3) {
-    switch (HAL_TIM_GetActiveChannel(&htim3)) {
+  if (htim == &htim4) {
+    switch (HAL_TIM_GetActiveChannel(&htim4)) {
       case HAL_TIM_ACTIVE_CHANNEL_1:
-        captured_value = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+          HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+          HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+        break;
+      case HAL_TIM_ACTIVE_CHANNEL_2:
+          HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+          HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
         break;
       default:
         break;
@@ -126,23 +127,28 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start(&htim3);
-  HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
-
+  HAL_TIM_Base_Start_IT(&htim4);
+  HAL_TIM_OC_Start_IT(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_OC_Start_IT(&htim4, TIM_CHANNEL_2);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int16_t prev_value = 0;
   while (ON) {
-    if (captured_value != 0) {
-      printf("val: %lu\n", captured_value);
-      captured_value = 0;
+    int16_t value = __HAL_TIM_GET_COUNTER(&htim3);
+    if (value != prev_value) {
+      __HAL_TIM_SET_AUTORELOAD(&htim4,                (value + 1) * 500 - 1);
+      __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1,  (value + 1) * 250 - 1);
+      __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2,  (value + 1) * 500 - 1);
+      prev_value = value;
     }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
