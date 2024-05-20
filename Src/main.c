@@ -18,8 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
-#include "dma.h"
+#include "comp.h"
+#include "dac.h"
 #include "rtc.h"
 #include "tim.h"
 #include "usart.h"
@@ -109,31 +109,28 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
-  MX_ADC1_Init();
   MX_RTC_Init();
+  MX_COMP1_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
 
-  volatile static uint16_t value[2];
-  HAL_ADCEx_Calibration_Start(&hadc1,  ADC_SINGLE_ENDED);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)value, 2);
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 3000);
+
+  HAL_COMP_Start(&hcomp1);
 
   GET_DATETIME();
   printf("RESET!\n");
   PRINT_TIME();
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
   while (ON) {
-    printf("value1=%u, value2=%u\n", value[0], value[1]);
-    HAL_Delay(250);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
