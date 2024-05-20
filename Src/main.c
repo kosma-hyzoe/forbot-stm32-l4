@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -54,6 +55,8 @@
   } while (0)
 #define PRINT_TIME() printf("%02d:%02d:%02d\n", time.Hours, time.Minutes, time.Seconds)
 #define PRINT_DATE() printf("%04d-%02d-%02d\n", date.Year, time.Month, time.Date)
+
+#define GET_VOLTAGE(x) (3300 * (x) / 4096)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -71,15 +74,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-}
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (htim == &htim3) {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-  }
-}
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {}
 
 /* USER CODE END 0 */
 
@@ -113,21 +109,25 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_ADCEx_Calibration_Start(&hadc1,  ADC_SINGLE_ENDED);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (ON) {
+    HAL_ADC_Start(&hadc1);
+    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+
+    uint32_t val = HAL_ADC_GetValue(&hadc1);
+    printf("ADC: %d / 1000 V\n", GET_VOLTAGE(val));
+    HAL_Delay(250);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }

@@ -16,7 +16,7 @@ upload-debug:
 	pio -f -c vim run -e debug --target upload
 clean:
 	pio -f -c vim run --target clean
-generate:
+gen:
 	stm32pio generate
 program:
 	pio -f -c vim run --target program
