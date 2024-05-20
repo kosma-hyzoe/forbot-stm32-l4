@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "rtc.h"
 #include "tim.h"
 #include "usart.h"
@@ -108,14 +109,17 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
+
+  volatile static uint16_t value[2];
   HAL_ADCEx_Calibration_Start(&hadc1,  ADC_SINGLE_ENDED);
-  HAL_ADC_Start(&hadc1);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)value, 2);
 
   GET_DATETIME();
   printf("RESET!\n");
@@ -126,9 +130,9 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (ON) {
-    uint32_t val = HAL_ADC_GetValue(&hadc1);
-    printf("ADC: %d / 1000 V\n", GET_VOLTAGE(val));
+    printf("value1=%u, value2=%u\n", value[0], value[1]);
     HAL_Delay(250);
     /* USER CODE END WHILE */
 
