@@ -21,6 +21,10 @@
 #include "comp.h"
 #include "dac.h"
 #include "rtc.h"
+#include "spi.h"
+#include "stm32l4xx_hal_def.h"
+#include "stm32l4xx_hal_gpio.h"
+#include "stm32l4xx_hal_spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -46,6 +50,18 @@
 
 #define ON 1
 #define OFF 2
+
+#define MCP_IODIR 0x00
+#define MCP_IPOL 0x01
+#define MCP_GPINTEN 0x02
+#define MCP_DEFVAL 0x03
+#define MCP_INTCON 0x04
+#define MCP_IOCON 0x05
+#define MCP_GPPU 0x06
+#define MCP_INTF 0x07
+#define MCP_INTCAP 0x08
+#define MCP_GPIO 0x09
+#define MCP_OLAT 0x0A
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -78,7 +94,13 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {}
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {}
-
+void mcp_reg_write(uint8_t reg, uint8_t value)
+{
+  uint8_t tx[3] = { 0x40, reg, value };
+  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, tx, 3, HAL_MAX_DELAY);
+  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
+}
 /* USER CODE END 0 */
 
 /**
@@ -114,6 +136,7 @@ int main(void)
   MX_RTC_Init();
   MX_COMP1_Init();
   MX_DAC1_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
 
@@ -125,12 +148,22 @@ int main(void)
   GET_DATETIME();
   printf("RESET!\n");
   PRINT_TIME();
+
+  // HAL_SPI_Transmit(&hspi2,
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t gpio_config[3] = { 0x40, MCP_IODIR, 0xFE }; // set GPIO0 as out
+  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, gpio_config, 3, HAL_MAX_DELAY);
+  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
 
   while (ON) {
+    mcp_reg_write(MCP_OLAT, 0x01);
+    HAL_Delay(500);
+    mcp_reg_write(MCP_OLAT, 0x00);
+    HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
