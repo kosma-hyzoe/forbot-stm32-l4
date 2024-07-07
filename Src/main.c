@@ -22,9 +22,6 @@
 #include "dac.h"
 #include "rtc.h"
 #include "spi.h"
-#include "stm32l4xx_hal_def.h"
-#include "stm32l4xx_hal_gpio.h"
-#include "stm32l4xx_hal_spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -35,6 +32,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <lcd.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,13 +92,6 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {}
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {}
-void mcp_reg_write(uint8_t reg, uint8_t value)
-{
-  uint8_t tx[3] = { 0x40, reg, value };
-  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
-  HAL_SPI_Transmit(&hspi2, tx, 3, HAL_MAX_DELAY);
-  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
-}
 /* USER CODE END 0 */
 
 /**
@@ -140,10 +131,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
 
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 3000);
-
-  HAL_COMP_Start(&hcomp1);
 
   GET_DATETIME();
   printf("RESET!\n");
@@ -154,16 +141,16 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t gpio_config[3] = { 0x40, MCP_IODIR, 0xFE }; // set GPIO0 as out
-  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_RESET);
-  HAL_SPI_Transmit(&hspi2, gpio_config, 3, HAL_MAX_DELAY);
-  HAL_GPIO_WritePin(IOEXP_CS_GPIO_Port, IOEXP_CS_Pin, GPIO_PIN_SET);
-
+  lcd_init();
+  lcd_fill_box(0, 0, 160, 16, RED);
+  lcd_fill_box(0, 16, 160, 16, GREEN);
+  lcd_fill_box(0, 32, 160, 16, BLUE);
+  lcd_fill_box(0, 48, 160, 16, YELLOW);
+  lcd_fill_box(0, 64, 160, 16, MAGENTA);
+  lcd_fill_box(0, 80, 160, 16, CYAN);
+  lcd_fill_box(0, 96, 160, 16, WHITE);
+  lcd_fill_box(0, 112, 160, 16, BLACK);
   while (ON) {
-    mcp_reg_write(MCP_OLAT, 0x01);
-    HAL_Delay(500);
-    mcp_reg_write(MCP_OLAT, 0x00);
-    HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

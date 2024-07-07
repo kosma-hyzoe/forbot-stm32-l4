@@ -1,4 +1,4 @@
-#include "mcp23s08.h"
+#include "mcp28s08.h"
 #include "spi.h"
 
 void mcp_reg_write(uint8_t reg, uint8_t value)
